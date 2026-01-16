@@ -114,7 +114,7 @@ def calc_mtf_interest(buy_value, margin_percent, days):
 # -----------------------------
 # UI
 # -----------------------------
-tab1, tab2 = st.tabs(["Equity Charges", "MTF Interest + Final P&L"])
+tab1, tab2, tab3 = st.tabs(["Equity Charges", "MTF Interest + Final P&L", "Tax + Take Home"])
 
 with tab1:
     st.subheader("Equity Charges Calculator")
@@ -188,3 +188,69 @@ with tab2:
     st.metric("Final Net P&L (After Charges + MTF Interest)", f"₹{final_net:.2f}")
 
     st.caption("Note: Actual interest may slightly vary depending on broker interest model and settlement cycle.")
+
+with tab3:
+    st.subheader("Tax + Take Home Calculator")
+    st.caption("This is an estimate. Actual tax depends on your ITR filing type, income slab, audit applicability etc.")
+
+    # User selects trading type for tax treatment
+    income_type = st.selectbox(
+        "Income Type / Tax Treatment",
+        ["Intraday (Business Income)", "Delivery STCG (15%)", "Delivery LTCG (10% above 1L)"]
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        realised_pnl = st.number_input("Realised P&L (₹)", value=float(data["gross_pnl"]), step=100.0)
+        other_income = st.number_input("Other taxable income (Salary/Business etc.) (₹)", value=0.0, step=1000.0)
+
+    with col2:
+        slab_rate = st.number_input("Tax slab rate % (for business income)", value=30.0, step=1.0)
+        ltcg_exemption = st.number_input("LTCG exemption (₹)", value=100000.0, step=10000.0)
+
+    with col3:
+        cess = st.number_input("Health & Education cess %", value=4.0, step=0.5)
+        extra_tax = st.number_input("Extra tax/charges (if any)", value=0.0, step=100.0)
+
+    st.divider()
+
+    # Net profit after charges
+    total_charges = data["total_charges"]
+    net_after_charges = realised_pnl - total_charges
+
+    # Tax calculation
+    estimated_tax = 0.0
+
+    if income_type == "Intraday (Business Income)":
+        # business income gets added in total income and taxed at slab
+        taxable_amount = max(net_after_charges, 0)
+        estimated_tax = taxable_amount * (slab_rate / 100.0)
+
+    elif income_type == "Delivery STCG (15%)":
+        taxable_amount = max(net_after_charges, 0)
+        estimated_tax = taxable_amount * 0.15
+
+    elif income_type == "Delivery LTCG (10% above 1L)":
+        taxable_amount = max(net_after_charges - ltcg_exemption, 0)
+        estimated_tax = taxable_amount * 0.10
+
+    # Cess
+    estimated_tax = estimated_tax + (estimated_tax * (cess / 100.0))
+    estimated_tax += extra_tax
+
+    take_home = net_after_charges - estimated_tax
+
+    r1, r2, r3 = st.columns(3)
+    r1.metric("Profit After Charges", f"₹{net_after_charges:.2f}")
+    r2.metric("Estimated Tax", f"₹{estimated_tax:.2f}")
+    r3.metric("Final Take Home", f"₹{take_home:.2f}")
+
+    st.write({
+        "Realised P&L entered": realised_pnl,
+        "Total charges (from Tab 1/2)": round(total_charges, 2),
+        "Net after charges": round(net_after_charges, 2),
+        "Taxable amount used": round(taxable_amount, 2),
+        "Tax method": income_type,
+        "Final take home": round(take_home, 2),
+    })
