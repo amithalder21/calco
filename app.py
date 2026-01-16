@@ -1,9 +1,9 @@
 import streamlit as st
 
-st.set_page_config(page_title="Groww Charges + MTF Calculator", layout="wide")
+st.set_page_config(page_title="Groww Trading P/L Calculator", layout="wide")
 
-st.title("Groww Equity + MTF Charges Calculator")
-st.caption("Charges based on the values shown in your screenshot (approx). You may edit constants in the sidebar.")
+st.title("Groww Trading P/L Calculator")
+st.caption("Charges based on the values shown in Groww portal (approx). You may edit constants in the sidebar.")
 
 # -----------------------------
 # DEFAULT CONSTANTS (EDITABLE)
