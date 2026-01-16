@@ -1,9 +1,9 @@
 import streamlit as st
 
-st.set_page_config(page_title="Groww Charges + MTF + Tax Calculator", layout="wide")
+st.set_page_config(page_title="Equity Profit/Loss Calculator", layout="wide")
 
-st.title("Groww Profit/Loss Calculator")
-st.caption("Equity charges based on values visible in your Groww. Tax is an estimate.")
+st.title("Equity Profit/Loss Calculator")
+st.caption("Equity charges based on values visible in your left dashboard. Tax is an estimate.")
 
 # -----------------------------
 # DEFAULT CONSTANTS (EDITABLE)
